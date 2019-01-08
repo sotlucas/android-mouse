@@ -1,14 +1,8 @@
+import java.util.Objects;
 import java.awt.*;
+import java.awt.event.InputEvent;
 
 public class MoveCursor {
-    /*
-    public static void main(String[] args) throws AWTException {
-        Robot robot = new Robot();
-        while (true) {
-            new MoveCursor().mouseGlide(600, 400, 1000, 30);
-        }
-    }
-    */
 
     public void mouseMove(int x, int y) {
         try {
@@ -20,8 +14,9 @@ public class MoveCursor {
     }
 
     public void mouseGlide(int x, int y, int time, int steps) {
-        float xi = MouseInfo.getPointerInfo().getLocation().x;
-        float yi = MouseInfo.getPointerInfo().getLocation().y;
+        Point actual = MouseInfo.getPointerInfo().getLocation();
+        float xi = actual.x;
+        float yi = actual.y;
 
         try {
             Robot r = new Robot();
@@ -35,6 +30,34 @@ public class MoveCursor {
         } catch (AWTException e){
             e.printStackTrace();
         } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void mouseClick(String action) {
+        try {
+            Robot r = new Robot();
+            if (Objects.equals("left", action)) {
+                //System.out.println("leftClick");
+                // Left Click
+                r.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+                r.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+            } else if (Objects.equals("right", action)) {
+                //System.out.println("rightClick");
+                // Right Click
+                r.mousePress(InputEvent.BUTTON3_DOWN_MASK);
+                r.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void mouseMoveWheel(int direction) {
+        try {
+            Robot r = new Robot();
+            r.mouseWheel(direction);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

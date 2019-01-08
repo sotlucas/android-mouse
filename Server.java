@@ -1,20 +1,28 @@
 import java.io.*;
 import java.net.*;
-import java.util.Arrays;
+import java.util.*;
 import java.awt.MouseInfo;
 import java.awt.Point;
 
 public class Server {
+
     public static void main(String[] args) throws IOException {
         int port = 8080;
+        String ip = null;
 
+        try (final DatagramSocket s = new DatagramSocket()) {
+            s.connect(InetAddress.getByName("8.8.8.8"), 10002);
+            ip = s.getLocalAddress().getHostAddress();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        new Server().startServer(port);
+        new Server().startServer(port, ip);
     }
 
-    private void startServer(int port) {
+    private void startServer(int port, String ip) {
         Thread thread = new Thread(new Runnable() {
-            private float[] data = null;
+            private Object incoming;
             private boolean done = false;
             MoveCursor mc = new MoveCursor();
 
@@ -23,41 +31,33 @@ public class Server {
                 try {
                     // Starting server
                     ServerSocket serverSocket = new ServerSocket(port);
-                    System.out.println("Started server on port " + port + "...");
+                    System.out.println("Started server...");
+                    System.out.println("IP: " + ip);
+                    System.out.println("PORT: " + port);
 
                     while (!done) {
                         // Read info from client
                         Socket socket = serverSocket.accept();
                         ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
+
                         try {
-                            data = (float[])input.readObject();
+                            incoming = input.readObject();
+                            if (float[].class.isInstance(incoming)) {
+                                float[] data = (float[])incoming;
+                                mouseMovementHandler(mc, data);
+                            } else if (String.class.isInstance(incoming)) {
+                                String data = (String)incoming;
+                                mouseActionHandler(mc, data);
+                            }
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
 
-                        // Process info
-                        //System.out.println("Android: " + Arrays.toString(data));
-                        Point pos = MouseInfo.getPointerInfo().getLocation();
-                        mc.mouseGlide((int)pos.getX() + (int)data[0] * -1,
-                                      (int)pos.getY() + (int)data[1] ,
-                                      150, 150); // Move cursor
-                        //mc.mouseMove(xi + (int)data[0] * -1, yi + (int)data[1]); // Move cursor
-                        System.out.println("PC: " + data[0] + ", " + data[1]);
-
                         // Send info to the client
                         PrintWriter output = new PrintWriter(socket.getOutputStream());
-                        String response = "Server: " + data;
+                        String response = "Server: " + "hi";
                         output.println(response);
-                        output.flush(); // Para que?
-
-                        // Para que es esto??
-                        /*
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        */
+                        output.flush();
 
                         // Close on client command
                         /*
@@ -79,5 +79,17 @@ public class Server {
             }
         });
         thread.start();
+    }
+
+    private void mouseMovementHandler(MoveCursor mc, float[] data) {
+        Point pos = MouseInfo.getPointerInfo().getLocation();
+        mc.mouseGlide((int)pos.getX() + (int)data[0] * -1 * 5,
+                      (int)pos.getY() + (int)data[1] * 5,
+                      50, 10); // Move cursor
+        System.out.println("PC: " + data[0] + ", " + data[1]);
+    }
+
+    private void mouseActionHandler(MoveCursor mc, String action) {
+        mc.mouseClick(action);
     }
 }
