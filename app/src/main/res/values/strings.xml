@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Hello World</string>
+    <string name="connect">Connect</string>
+    <string name="message">Message</string>
+    <string name="port">Port</string>
+    <string name="ip">IP</string>
+    <string name="izq">IZQ</string>
+    <string name="der">DER</string>
+    <string name="disconnected">Disconnected</string>
+</resources>
